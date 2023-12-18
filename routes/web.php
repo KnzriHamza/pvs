@@ -24,4 +24,5 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', [WhatsappMessageController::class, 'index'])->name('dashboard');
+    Route::delete('/delete/{id}', [WhatsappMessageController::class, 'destroy'])->name('deleteMessage');
 });

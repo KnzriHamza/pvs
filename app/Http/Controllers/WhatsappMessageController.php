@@ -14,21 +14,50 @@ class WhatsappMessageController extends Controller
      * Display a listing of the resource.
      */
     function send(Request $request){
-        // Find your Account SID and Auth Token at twilio.com/console
-// and set the environment variables. See http://twil.io/secure
+        $client = new \GuzzleHttp\Client();
         $sid = getenv("TWILIO_SID");
         $Hamza = getenv("TWILIO_SID");
         $token = getenv("TWILIO_AUTH_TOKEN");
+
+
+        $response = $client->request('POST', 'https://robomatic-ai.p.rapidapi.com/api', [
+            'form_params' => [
+                'in' => $request->message,
+                'op' => 'in',
+                'cbot' => '1',
+                'SessionID' => 'RapidAPI1',
+                'cbid' => '1',
+                'key' => 'RHMN5hnQ4wTYZBGCF3dfxzypt68rVP',
+                'ChatSource' => 'RapidAPI',
+                'duration' => '1'
+            ],
+            'headers' => [
+                'X-RapidAPI-Host' => 'robomatic-ai.p.rapidapi.com',
+                'X-RapidAPI-Key' => 'a0ac45b27cmshb60aed6954ba011p18dd10jsnc889785187a0',
+                'content-type' => 'application/x-www-form-urlencoded',
+            ],
+        ]);
+        $data = json_decode($response->getBody(), true);
+        $aiResponse = $data['out'];
+
         $twilio = new Client($sid, $token);
         $message = $twilio->messages
             ->create("whatsapp:+491772275270", // to
                 [
-                    "body" => $request->message,
+                    "body" => $aiResponse,
                     "from" => "whatsapp:+14155238886"
                 ]
             );
-        $message = WhatsappMessage::create(['message' => $request->message]);
 
+            $message = WhatsappMessage::create([
+                'message' => $request->message,
+                'response' => $aiResponse
+            ]);
+
+        
+        
+        //echo ;
+        
         return redirect('/dashboard');
 
     }
@@ -86,8 +115,16 @@ class WhatsappMessageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(WhatsappMessage $whatsappMessage)
+    public function destroy($messageId)
     {
-        //
+        $result = WhatsappMessage::where('id',$messageId)->delete();;
+
+    if ($result) {
+        // Message deleted successfully
+        return redirect()->back()->with('success', 'Message deleted successfully.');
+    } else {
+        // Unable to delete message
+        return redirect()->back()->with('error', 'Unable to delete message.');
+    }
     }
 }
