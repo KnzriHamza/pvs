@@ -7,17 +7,16 @@ use App\Http\Requests\StoreWhatsappMessageRequest;
 use App\Http\Requests\UpdateWhatsappMessageRequest;
 use Illuminate\Http\Request;
 use OpenAI;
-class WhatsappMessageController extends Controller
+class AiImageController extends Controller
 {
 /**
      * Display a listing of the resource.
      */
     function generateImage(Request $request){
         $client = $client = OpenAI::client(config('app.openai_api_key'));;
-        $message = $request->message;
         $response = $client->images()->create([
             'model' => 'dall-e-2',
-            'prompt' => $message,
+            'prompt' => 'A cute baby sea otter',
             'n' => 1,
             'size' => '1024x1024',
             'response_format' => 'url',
@@ -30,45 +29,12 @@ class WhatsappMessageController extends Controller
             $data->b64_json; // null
         }
         
-        $response->toArray();
-
         return $response->toArray();
-        return redirect('/dashboard');
 
     }
 
 
 
-    /**
-     * Display a listing of the resource.
-     */
-    function generateChat(Request $request){
-        $client = $client = OpenAI::client(config('app.openai_api_key'));;
-        
-       
-            $message = $request->message;
-
-            
-            
-            $result = $client->chat()->create([
-                'model' => 'gpt-3.5-turbo-1106',
-                'messages' => [
-                    ['role' => 'user', 'content' => $message],
-                ],
-            ]);
-        
-            $content = $result->choices[0]->message->content;;
-            
-            $message = WhatsappMessage::create([
-                'message' => $message,
-                'response' => $content
-            ]);
-
-        //echo ;
-        
-        return redirect('/dashboard');
-
-    }
 
     /**
      * Display a listing of the resource.
@@ -78,7 +44,7 @@ class WhatsappMessageController extends Controller
 
         $messages = WhatsappMessage::orderBy('created_at', 'DESC')->get();
 
-        return view('dashboard', ['messages' => $messages]);
+        return view('pages/imageGen', ['messages' => $messages]);
     }
 
     /**
